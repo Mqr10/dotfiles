@@ -18,8 +18,8 @@
 # winfuncs.sh showdesktop
 
 # set gaps (0 removes gaps)
-outer_gaps=0
-inner_gaps=0
+outer_gaps=15
+inner_gaps=10
 
 # set gaps for 'select' mode
 expose_gaps=20
@@ -260,6 +260,52 @@ function win_tile_three_v {
 	echo "$commands" | xdotool -
 }
 
+function win_tile_four {
+	get_desktop_dim
+
+	wid1=`xdotool selectwindow 2>/dev/null`
+
+	is_desktop "$wid1" && return
+
+	wid2=`xdotool selectwindow 2>/dev/null`
+
+	is_desktop "$wid2" && return
+	
+	wid3=`xdotool selectwindow 2>/dev/null`
+
+	is_desktop "$wid3" && return
+
+	wid4=`xdotool selectwindow 2>/dev/null`
+
+	is_desktop "$wid4" && return
+
+    win_h=${DIM[1]}
+    half_w=`expr ${DIM[0]} / 2`
+	half_h=`expr ${win_h} / 2`
+	half_half_w=`expr ${half_w} / 2 + $inner_gaps / 2`
+
+	commands="windowsize $wid1 `expr $half_w - $inner_gaps` `expr $win_h - $titlebar_offset`"
+	commands="$commands windowsize $wid2 `expr $half_w - $inner_gaps` `expr $half_h - $titlebar_offset - $inner_gaps`"
+	commands="$commands windowsize $wid3 `expr $half_half_w - $inner_gaps - $inner_gaps` `expr $half_h - $titlebar_offset - $inner_gaps`"
+	commands="$commands windowsize $wid4 `expr $half_half_w - $inner_gaps - $inner_gaps` `expr $half_h - $titlebar_offset - $inner_gaps`"
+	commands="$commands windowmove $wid1 $outer_gaps `expr $top_bar + $outer_gaps`"
+	commands="$commands windowmove $wid2 `expr $half_w + $outer_gaps + $inner_gaps` `expr $top_bar + $outer_gaps`"
+	commands="$commands windowmove $wid3 `expr $half_w + $outer_gaps + $inner_gaps` `expr $half_h + $top_bar + $outer_gaps + $inner_gaps`"
+	commands="$commands windowmove $wid4 `expr $half_w + $half_half_w + $outer_gaps + $inner_gaps` `expr $half_h + $top_bar + $outer_gaps + $inner_gaps`"
+	commands="$commands windowraise $wid1"
+	commands="$commands windowraise $wid2"
+	commands="$commands windowraise $wid3"
+	commands="$commands windowraise $wid4"
+
+	wmctrl -i -r $wid1 -b remove,maximized_vert,maximized_horz
+	wmctrl -i -r $wid2 -b remove,maximized_vert,maximized_horz
+	wmctrl -i -r $wid3 -b remove,maximized_vert,maximized_horz
+	wmctrl -i -r $wid4 -b remove,maximized_vert,maximized_horz
+
+	echo "$commands" | xdotool -
+}
+
+
 function win_tile {
 	get_workspace
 	get_visible_window_ids
@@ -430,7 +476,9 @@ for command in ${@} ; do
 		win_tile_three
 	elif [[ "$command" == "tilethreev" ]] ; then
 		win_tile_three_v
-        elif [[ "$command" == "cascade" ]] ; then
+	elif [[ "$command" == "tilefour" ]] ; then
+		win_tile_four
+    elif [[ "$command" == "cascade" ]] ; then
 		win_cascade
 	elif [[ "$command" == "showdesktop" ]] ; then
 		win_showdesktop
